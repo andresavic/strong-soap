@@ -72,15 +72,14 @@ exports.toXMLDate = function(d) {
 exports.createPromiseCallback = function createPromiseCallback() {
   var cb;
   var promise = new Promise(function(resolve, reject) {
-    cb = function(err, result, envelope, soapHeader) {
+    cb = function(err, result, envelope, soapHeader, attachments) {
       if (err) {
         reject(err);
       } else {
-        resolve({result, envelope, soapHeader});
+        resolve({result, envelope, soapHeader, attachments});
       }
     }
   });
   cb.promise = promise;
   return cb;
 }
-

@@ -262,7 +262,7 @@ class Client extends Base {
       }
     };
 
-    req = self.httpClient.request(location, xml, function(err, response, body) {
+    req = self.httpClient.request(location, xml, function(err, response, body, attachments) {
       var result;
       var obj;
       self.lastResponse = body;
@@ -297,14 +297,14 @@ class Client extends Base {
             //  If the response is JSON then return it as-is.
             var json = _.isObject(body) ? body : tryJSONparse(body);
             if (json) {
-              return callback(null, response, json);
+              return callback(null, response, json, null, attachments);
             }
           }
           //Reaches here for Fault processing as well since Fault is thrown as an error in xmlHandler.xmlToJson(..) function.
           error.response = response;
           error.body = body;
           self.emit('soapError', error);
-          return callback(error, response, body);
+          return callback(error, response, body, null, attachments);
         }
 
         if (!output) {
@@ -341,7 +341,7 @@ class Client extends Base {
         }
         debug('client response. result: %j body: %j obj.Header: %j', result, body, obj.Header);
 
-        callback(null, result, body, obj.Header);
+        callback(null, result, body, obj.Header, attachments);
       }
     }, headers, options, self);
 

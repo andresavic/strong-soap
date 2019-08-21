@@ -59,8 +59,8 @@ describe('custom http client', function() {
             if (err) {
               return callback(err);
             }
-            body = self.handleResponse(req, res, body);
-            callback(null, res, body);
+            let { envelope } = self.handleResponse(req, res, body);
+            callback(null, res, envelope);
           });
           if (headers.Connection !== 'keep-alive') {
             req.end(data);

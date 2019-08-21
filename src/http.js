@@ -12,6 +12,8 @@ var debugSensitive = require('debug')('strong-soap:http:sensitive');
 var httpntlm = require('httpntlm');
 var uuid = require('uuid/v4')
 
+var parse = require('multipart-raw-parser')
+
 
 var VERSION = require('../package.json').version;
 
@@ -124,16 +126,29 @@ class HttpClient {
    */
   handleResponse(req, res, body) {
     debug('Http response body: %j', body);
-    if (typeof body === 'string') {
-      // Remove any extra characters that appear before or after the SOAP
-      // envelope.
-      var match = body.match(
-        /(?:<\?[^?]*\?>[\s]*)?<([^:]*):Envelope([\S\s]*)<\/\1:Envelope>/i);
+
+    let envelope = null;
+    let attachments = [];
+
+    if (res.headers['content-type'] && res.headers['content-type'].includes('multipart')){
+      const data = parse(body, res.headers['content-type'])
+
+      if (data.length >= 1) {
+        envelope = data[0].value;
+      }
+
+      if (data.length >= 2) {
+        attachments = data.slice(1);
+      }
+
+    }else{
+      var match = body.match(/(?:<\?[^?]*\?>[\s]*)?<([^:]*):Envelope([\S\s]*)<\/\1:Envelope>/i);
       if (match) {
-        body = match[0];
+        envelope = match[0];
       }
     }
-    return body;
+
+    return { envelope: envelope || body , attachments}
   }
 
   //check if NTLM authentication needed
@@ -165,8 +180,8 @@ class HttpClient {
         if (err) {
           return callback(err);
         }
-        body = self.handleResponse(req, res, body);
-        callback(null, res, body);
+        let { envelope, attachments } = self.handleResponse(req, res, body);
+        callback(null, res, envelope, attachments);
       });
     } else {
         //httpntlm code needs 'url' in options{}. It should be plain string, not parsed uri
@@ -183,8 +198,10 @@ class HttpClient {
           if (err) {
             return callback(err);
           }
-          var body = self.handleResponse(req, res, res.body);
-          callback(null, res, body);
+          let { envelope, attachments } = self.handleResponse(req, res, res.body);
+
+          console.log("BLA", attachments);
+          callback(null, res, envelope, attachments);
         });
       }
 
