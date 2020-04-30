@@ -10,7 +10,7 @@
     "debug": "^4.1.1",
     "httpntlm": "^1.7.6",
     "lodash": "^4.17.11",
-    "multipart-raw-parser": "^0.6.2",
+    "multipart-raw-parser": "git+https://github.com/andresavic/multipart-raw-parser.git",
     "node-rsa": "^1.0.5",
     "request": "^2.72.0",
     "sax": "^1.2",
